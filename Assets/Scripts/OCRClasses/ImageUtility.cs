@@ -1,23 +1,21 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ImageUtility
+public static class ImageUtility
 {
     public static ImageInt GetImage(Texture2D texture)
     {
         return GetImage(texture.GetPixels(), texture.width, texture.height);
     }
-        public static ImageInt GetImage(Color[] pixelsarray, int width, int height)
+    public static ImageInt GetImage(Color[] pixelsarray, int width, int height)
     {
-        Debug.Log("creating New image");
+     
         ImageInt image = new ImageInt(width, height, ImageInt.TYPE.RGB);
-
-        Debug.Log("New ImageInt created");
 
         for (int i = 0; i < image.GetWidth(); i++)
         {
             for (int j = 0; j < image.GetHeight(); j++)
             {
-                //Debug.Log("Pixel: "+i+", "+j);
                 int pixelValue = ConvertColorToPackedInt(pixelsarray[i + j * width]);
                 image.pixel[i, j] = pixelValue;
             }
@@ -30,7 +28,7 @@ public class ImageUtility
     {
         if (image == null)
         {
-            Debug.Log("Cannot create BufferedImage object. ImageInt object null.");
+            Debug.Log("Cannot create Texture. ImageInt object null.");
             return null;
         }
 
@@ -59,9 +57,7 @@ public class ImageUtility
             }
         }
         else if (image.GetType() == ImageInt.TYPE.BIN)
-        {
-            Debug.Log("hello bin to texture");
-            int blacks = 0;
+        { 
             for (int i = 0; i < image.GetWidth(); i++)
             {
                 for (int j = 0; j < image.GetHeight(); j++)
@@ -69,13 +65,12 @@ public class ImageUtility
                     if (image.pixel[i, j] == 1)
                     {
                         texture.SetPixel(i, j, Color.black);
-                        blacks++;
+                     
                     }
                     else
                         texture.SetPixel(i, j, Color.white);
                 }
             }
-            Debug.Log("text: "+ blacks);
         }
 
         return texture;
@@ -235,5 +230,58 @@ public class ImageUtility
             components[i].AddComponentOnImage(newImage);
         }
         return newImage;
+    }
+
+    public static ImageInt Convert2RGB(ImageInt image)
+    {
+        if(image.GetType() == ImageInt.TYPE.RGB)
+            return new ImageInt(image);
+
+        ImageInt convImage = new ImageInt(image.GetWidth(), image.GetHeight(), ImageInt.TYPE.RGB);
+        if (image.GetType() == ImageInt.TYPE.GRAY)
+        {
+            for (int i = 0; i < image.GetWidth(); i++)
+                for (int j = 0; j < image.GetHeight(); j++)
+                {
+                    int grayValue = image.pixel[i, j] | 0xFF;
+                    convImage.pixel[i, j] = grayValue << 16 | grayValue << 8 | grayValue;
+                }
+        }
+        else if (image.GetType() == ImageInt.TYPE.BIN)
+        {
+            int color_black = ConvertColorToPackedInt(Color.black);
+            int color_while = ConvertColorToPackedInt(Color.white);
+            for (int i = 0; i < image.GetWidth(); i++)
+                for (int j = 0; j < image.GetHeight(); j++)
+                {
+                    if (image.pixel[i, j] == 1)
+                        convImage.pixel[i, j] = color_black;
+                    else
+                        convImage.pixel[i, j] = color_while;
+                }
+        }
+        return convImage;
+    }
+
+    public static ImageInt GetSegmentsAddedImage(ImageInt binImage, List<RectangularBound<int>> segments, Color _color)
+    {
+        ImageInt segmentAddedImage = Convert2RGB(binImage);
+        int color = ConvertColorToPackedInt(_color);
+
+        foreach (RectangularBound<int> segment in segments)
+        {
+            for (int ycoord = segment.MinY; ycoord <= segment.MaxY; ycoord++)
+            {
+                segmentAddedImage.pixel[segment.MinX, ycoord] = color;//draw minX line
+                segmentAddedImage.pixel[segment.MaxX, ycoord] = color;//draw maxX line
+            }
+
+            for (int xcoord = segment.MinX; xcoord <= segment.MaxX; xcoord++)
+            {
+                segmentAddedImage.pixel[xcoord, segment.MinY] = color;//draw minY line
+                segmentAddedImage.pixel[xcoord, segment.MaxY] = color;//draw maxY line
+            }
+        }
+        return segmentAddedImage;
     }
 }

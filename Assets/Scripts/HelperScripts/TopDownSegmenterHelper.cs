@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class TopDownSegmenterHelper 
 {
-   public List<RectangularBound<int>> Segment(ImageInt sourceImage)
+   public List<RectangularBound<int>> GetSegments(ImageInt sourceImage)
    {
         if (sourceImage.GetType() != ImageInt.TYPE.BIN)
         {
@@ -11,7 +11,7 @@ public class TopDownSegmenterHelper
             return null;
         }
 
-        Debug.Log("Performing top down segmentation - " + Time.realtimeSinceStartup);
+        Debug.Log("Performing top down segmentation");
 
         TopDownSegmenter segmenter = new TopDownSegmenter(sourceImage);
         segmenter.Segment();

@@ -1,10 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PostNoiseReducerHelper
 {
-    public ImageInt ReduceNoise(ImageInt sourceImage, List<RectangularBound<int>> segments)
+    public ImageInt GetDeNoisedImage(ImageInt sourceImage, List<RectangularBound<int>> segments)
     {
         if (sourceImage.GetType() != ImageInt.TYPE.BIN)
         {
@@ -12,9 +11,14 @@ public class PostNoiseReducerHelper
             return null;
         }
 
-        Debug.Log("Performing post noise reduction - "+ Time.realtimeSinceStartup);
+        Debug.Log("Performing post noise reduction");
 
         ImageInt combinedImage = new ImageInt(sourceImage.GetWidth(), sourceImage.GetHeight(), ImageInt.TYPE.BIN);
+        //make sure that all pixels are initialized to background or 0
+        for (int i = 0; i < combinedImage.GetWidth(); i++)
+            for (int j = 0; j < combinedImage.GetHeight(); j++)
+                combinedImage.pixel[i, j] = 0;
+
         foreach (RectangularBound<int> bound in segments)
         {
             ImageInt img = sourceImage.GetCroppedImage(bound);

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 public class TopDownSegmenter
 {
-    private float whitespaceThresholdFactor = 0.001f; // 1% of the height or width
-    private int segmentationThresholdWhitespaceLength = 10; // segment up to 20 whitespaces of layout
+    private float whitespaceThresholdFactor = 0.002f; // 1% of the height or width
+    private int segmentationThresholdWhitespaceLength; // segment up to 20 whitespaces of layout
     private ImageInt image;
     private ProjectionProfile pp;
     private BinaryTree<RectangularBound<int>> layoutTree;
@@ -68,7 +68,7 @@ public class TopDownSegmenter
         var horizantalMaxWhitespace = new Range<int>(0, 0, 0);
         var horizantalCurWhitespace = new Range<int>(0, 0, 0);
 
-        int horizantalWhitespaceThreshold = (int)Math.Max(whitespaceThresholdFactor * hp.Length, 2);
+        int horizantalWhitespaceThreshold = (int)(whitespaceThresholdFactor * hp.Length);
 
         for (int i = 0; i < hp.Length;)
         {
@@ -92,7 +92,7 @@ public class TopDownSegmenter
         var verticalMaxWhitespace = new Range<int>(0, 0, 0);
         var verticalCurWhitespace = new Range<int>(0, 0, 0);
 
-        int verticalWhitespaceThreshold = (int)Math.Max(whitespaceThresholdFactor * vp.Length, 2);
+        int verticalWhitespaceThreshold = (int)(whitespaceThresholdFactor * vp.Length);
 
         for (int i = 0; i < vp.Length;)
         {

@@ -7,8 +7,8 @@ public class KPrediction
 
     public KPrediction(ImageInt image)
     {
-        if (image.GetType() != ImageInt.TYPE.GRAY)
-            Debug.Log("ImageInt not in grayscale. <KPrediction>");
+        //if (image.GetType() != ImageInt.TYPE.GRAY)
+            //Debug.Log("ImageInt not in grayscale. <KPrediction>");
         Otsu otsu = new Otsu();
         otsu.SetImage(image);
         otsu.CalculateThreshold();

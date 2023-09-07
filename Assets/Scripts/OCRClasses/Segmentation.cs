@@ -150,9 +150,9 @@ public class Segmentation
 
     private void SetPixelVal(ImageInt img, Component c, int val)
     {
-        for (int i = c.GetMinX(); i < c.GetMinX() + 1; i++)
+        for (int i = c.GetMinX(); i < c.GetMaxX() + 1; i++)
         {
-            for (int j = c.GetMinX(); j < c.GetMinX() + 1; j++)
+            for (int j = c.GetMinY(); j < c.GetMaxY() + 1; j++)
             {
                 if (img.pixel[i, j] != 0)
                 {

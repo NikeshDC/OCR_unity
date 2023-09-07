@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BinarizeHelper
 {
-    public ImageInt Binarize(ImageInt sourceImage)
+    public ImageInt GetBinarizedImage(ImageInt sourceImage)
     {
         Debug.Log("Performing binarization");
 
