@@ -100,12 +100,18 @@ public class Otsu : Binarization
         S0 = 0.0;
         for (int i = 0; i <= threshold; i++)
             S0 += Math.Pow((i - U0), 2) * histogram.LevelNormalized[i];
-        S0 = S0 / W0;
+        if(W0 == 0)
+            S0 = 0.0;
+        else
+            S0 = S0 / W0;
 
         S1 = 0.0;
         for (int i = threshold + 1; i < L; i++)
             S1 += Math.Pow((i - U1), 2) * histogram.LevelNormalized[i];
-        S1 = S1 / W1;
+        if(W1 == 0)
+            S1 = 0.0;
+        else
+            S1 = S1 / W1;
 
         Sw = W0 * S0 + W1 * S1;
     }
