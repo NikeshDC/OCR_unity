@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviour
     private Texture2D cameraCapture;  //saves captured image when button pressed
 
     public Canvas UIcanvas;   //briefly hides ui canvas to take screen capture equivalent to taking photo using camera
-    public RawImage ocrImage;  //container for showing processed image
+    public RawImage ocrImageFeed;  //container for showing processed image
     public OCRManager ocrManager;
     public RawImage cameraFeed;
 
@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     {
         screenImageCaptured = false;
         capturingImage = false; 
-        ocrManager.imageToSet = ocrImage;
+        ocrManager.imageToSet = ocrImageFeed;
 
         ToggleCameraFeed(true);  //initailly show camera feed and hide ocr image
     }
@@ -28,8 +28,6 @@ public class GameManager : MonoBehaviour
 
     public void OnFullOCRButtonPress()
     {
-        ToggleCameraFeed(false);
-
         if (ocrManager.IsProcessing() && !capturingImage)
             return;
         screenImageCaptured=false;
@@ -40,7 +38,8 @@ public class GameManager : MonoBehaviour
     IEnumerator CaptureScreenImage()
     {
         UIcanvas.gameObject.SetActive(false);
-        yield return null;  //wait so as to let the ui elements have enough time to be hidden
+        //yield return null; //wait so as to let the ui elements have enough time to be hidden
+        yield return new WaitForEndOfFrame();  
         cameraCapture = ScreenCapture.CaptureScreenshotAsTexture();
         ocrManager.SetImageToOCR(cameraCapture);
         UIcanvas.gameObject.SetActive(true);
@@ -52,14 +51,13 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
+        ToggleCameraFeed(false);
         ocrManager.PerformFullOCR();
         capturingImage = false;
     }
 
     public void OnOneStepOCRButtonPress()
     {
-        ToggleCameraFeed(false);
-
         if (ocrManager.IsProcessing() && !capturingImage)
             return;
         screenImageCaptured = false;
@@ -73,6 +71,7 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
+        ToggleCameraFeed(false);
         ocrManager.OneStep();
         capturingImage = false;
     }
@@ -85,7 +84,7 @@ public class GameManager : MonoBehaviour
     private void ToggleCameraFeed(bool toggleTo)
     {//when one is shown other should be hidden
         cameraFeed.gameObject.SetActive(toggleTo);
-        ocrImage.gameObject.SetActive(!toggleTo);
+        ocrImageFeed.gameObject.SetActive(!toggleTo);
     }
 
 }
