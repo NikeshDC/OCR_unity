@@ -42,6 +42,8 @@ public class OCRManager : MonoBehaviour
 
     public void SetImageToOCR(Texture2D texture)
     {
+        if (texture == null)
+            return;
         imageToOCR = texture;
         SetDefaultImageInt();
     }
@@ -69,7 +71,8 @@ public class OCRManager : MonoBehaviour
     }
     private void SaveAllImages()
     {
-        //SaveTexture(imageToOCR, ocrImagesFileNames[0]);
+        if(imageToOCR.isReadable)
+            SaveTexture(imageToOCR, ocrImagesFileNames[0]);
         for(int i=1; i < ocrImagesFileNames.Length; i++)
             SaveTexture(ImageUtility.GetTexture(ocrImages[i]), ocrImagesFileNames[i]);
     }
@@ -109,6 +112,7 @@ public class OCRManager : MonoBehaviour
                 ShowProcessedImage(ocrImages[4]);
                 break;
             case ProcessingStage.COMPLETE:
+                Debug.Log("OCR complete");
                 SaveAllImages();
                 imageToSet.texture = imageToOCR;
                 currentState = ProcessingStage.NONE;
@@ -187,7 +191,6 @@ public class OCRManager : MonoBehaviour
         isProcessing = true;
         if(currentState == ProcessingStage.NONE)
             currentState = ProcessingStage.BINARIZE;//currentState is used as if to mean which stage to perform this call
-
         Task.Run(() => { ProcessImageOneStep(); });
     }
     private void ProcessImageOneStep()
