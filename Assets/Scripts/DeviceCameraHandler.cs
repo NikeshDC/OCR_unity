@@ -47,14 +47,6 @@ public class DeviceCameraHandler : MonoBehaviour
         if (!cameraAvaialable)
             return;
 
-        if (cameraOutput.width < 100)
-        {
-            Debug.Log("Still waiting another frame for correct info...");
-            return;
-        }
-
-        cameraDisplay.material.SetTextureScale("_Texture", new Vector2(1f, 1f));
-
         //handle camera sacle and rotation
         float aspectRatio = (float)cameraOutput.width / (float)cameraOutput.height;
         aspectRatioFitter.aspectRatio = aspectRatio;
