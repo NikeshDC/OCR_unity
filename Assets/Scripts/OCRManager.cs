@@ -35,6 +35,7 @@ public class OCRManager : MonoBehaviour
     public EmptyCallback OnOCRComplete;
 
     public TextMeshProUGUI statusBar;
+    public GameObject statusBarObject;
     
 
     private void Start()
@@ -51,6 +52,7 @@ public class OCRManager : MonoBehaviour
         previousCheckState = ProcessingStage.NONE;
         oneStepAvailable = true;
         imageSaveDirectory = Application.persistentDataPath + Path.DirectorySeparatorChar;
+        statusBarObject.SetActive(false);
 
         ocrTextViewer.SetActive(false);
     }
@@ -110,10 +112,12 @@ public class OCRManager : MonoBehaviour
         if (currentState == previousCheckState)
             return;  //no update is required
 
+        statusBarObject.SetActive(true);
+
         switch (currentState)
         {
             case ProcessingStage.NONE:
-                statusBar.text = "";
+                statusBarObject.SetActive(false);
                 ocrImageContainer.texture = imageToOCR;
                 break;
             case ProcessingStage.BINARIZE:
@@ -276,7 +280,7 @@ public class OCRManager : MonoBehaviour
         ocrImageAspectRatioFitter.aspectRatio = aspectRatio;
 
         ocrTextViewer.SetActive(false);
-        statusBar.text = "";
+        statusBarObject.SetActive(false);
 
         currentState = ProcessingStage.NONE;
         oneStepAvailable = true;
