@@ -18,7 +18,8 @@ public class PostNoiseReducerHelper
         for (int i = 0; i < combinedImage.GetWidth(); i++)
             for (int j = 0; j < combinedImage.GetHeight(); j++)
                 combinedImage.pixel[i, j] = 0;
-
+        //////
+        int idj = 0;
         foreach (RectangularBound<int> bound in segments)
         {
             ImageInt img = sourceImage.GetCroppedImage(bound);
@@ -49,6 +50,7 @@ public class PostNoiseReducerHelper
                     combinedImage.pixel[i + bound.MinX, j + bound.MinY] = img.pixel[i, j];
                 }
             }
+            idj++;
         }
 
         return combinedImage;

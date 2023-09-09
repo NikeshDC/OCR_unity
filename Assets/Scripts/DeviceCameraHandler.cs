@@ -37,20 +37,21 @@ public class DeviceCameraHandler : MonoBehaviour
                 cameraDisplay.AddComponent<AspectRatioFitter>();
             aspectRatioFitter = cameraDisplay.GetComponent<AspectRatioFitter>();
             aspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+
+            float aspectRatio = (float)cameraOutput.width / (float)cameraOutput.height;
+            aspectRatioFitter.aspectRatio = aspectRatio;
         }
         else
             cameraDisplay.texture = defaultTexture; 
-
     }
 
-    private void Update()
+    /*private void Update()
     {
         if (!cameraAvaialable)
             return;
 
         //handle camera rotation and so on
-        float aspectRatio = (float)cameraOutput.width / (float)cameraOutput.height;
-        aspectRatioFitter.aspectRatio = aspectRatio;
-    }
+       
+    }*/
 
 }

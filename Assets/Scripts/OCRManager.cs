@@ -4,19 +4,25 @@ using UnityEngine.UI;
 using System.IO;
 using System.Collections.Generic;
 using System.Collections;
+using TMPro;
 
 public class OCRManager : MonoBehaviour
 {
     private Texture2D imageToOCR;
-    public RawImage imageToSet;
+    public RawImage ocrImageContainer;
+    AspectRatioFitter ocrImageAspectRatioFitter;
+
+    public bool saveOCRImages;  //should the processed images be saved
 
     ImageInt[] ocrImages;   //images for each of the stage
     string[] ocrImagesFileNames = { "original", "binarized","noisered", "segmented", "final"}; //filename to saves above ocr images
     string imageSaveDirectory;  //directory path where to save the image files
     List<RectangularBound<int>> segments;  //segmentation step also produces list of segments for image
     string ocrText;  //the string output from ocr process
+    public TextMeshProUGUI ocrTextMesh;
+    public GameObject ocrTextViewer;
 
-    enum ProcessingStage { NONE, BINARIZE, NOISE, SEGMENT, POSTNOISE, OCR, COMPLETE};  //what process is ongoing
+    public enum ProcessingStage { NONE, BINARIZE, NOISE, SEGMENT, POSTNOISE, OCR, COMPLETE};  //what process is ongoing
     //if state is NONE no processing is ongoing, if state is BINARIZE then binarization is ongoing, 
     //if state is NOISE then binarization has finished and noise reduction is going on and so on
     //COMPLETE means all processing has recently completed
@@ -25,11 +31,20 @@ public class OCRManager : MonoBehaviour
     bool oneStepAvailable;  //onestep functionality can be activated or not
     bool isProcessing; //track whether any processing is ongoing as inerface for external programs
 
-    float updateInterval = 0.01f;  //interval in which to check for processing state //check every 0.1s
+    public delegate void EmptyCallback();
+    public EmptyCallback OnOCRComplete;
+
+    public TextMeshProUGUI statusBar;
     
 
     private void Start()
     {
+        //add aspect ratio fitter to imagecontainer
+        if (ocrImageContainer.GetComponent<AspectRatioFitter>() == null)
+            ocrImageContainer.gameObject.AddComponent<AspectRatioFitter>();
+        ocrImageAspectRatioFitter = ocrImageContainer.GetComponent<AspectRatioFitter>();
+        ocrImageAspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent; //fit entire image within the screen
+
         ocrImages = new ImageInt[5];  //a default representing the initial image and 4 different processing stages
         SetImageToOCR(imageToOCR);
         currentState = ProcessingStage.NONE;
@@ -37,7 +52,7 @@ public class OCRManager : MonoBehaviour
         oneStepAvailable = true;
         imageSaveDirectory = Application.dataPath + Path.DirectorySeparatorChar;
 
-        StartCoroutine(OnUpdate());
+        ocrTextViewer.SetActive(false);
     }
 
     public void SetImageToOCR(Texture2D texture)
@@ -45,6 +60,8 @@ public class OCRManager : MonoBehaviour
         if (texture == null)
             return;
         imageToOCR = texture;
+        float aspectRatio = (float)texture.width / (float)texture.height;
+        ocrImageAspectRatioFitter.aspectRatio = aspectRatio;
         SetDefaultImageInt();
     }
     private void SetDefaultImageInt()
@@ -56,18 +73,22 @@ public class OCRManager : MonoBehaviour
         //SaveTexture(imageToOCR, ocrImagesFileNames[0]);
     }
 
-    private void ShowProcessedImageAndSave(ImageInt imageToShow, string filename)
-    {
-        Texture2D imgtexture = ImageUtility.GetTexture(imageToShow);
-        imageToSet.texture = imgtexture;
-        imgtexture.Apply();
-        SaveTexture(imgtexture, filename);
-    }
     private void ShowProcessedImage(ImageInt imageToShow)
     {
         Texture2D imgtexture = ImageUtility.GetTexture(imageToShow);
-        imageToSet.texture = imgtexture;
+        ocrImageContainer.texture = imgtexture;
         imgtexture.Apply();
+        float aspectRatio = (float)imgtexture.width / (float)imgtexture.height;
+        ocrImageAspectRatioFitter.aspectRatio = aspectRatio;
+    }
+    private void ShowProcessedImageAndSave(ImageInt imageToShow, string filename)
+    {
+        Texture2D imgtexture = ImageUtility.GetTexture(imageToShow);
+        ocrImageContainer.texture = imgtexture;
+        imgtexture.Apply();
+        float aspectRatio = (float)imgtexture.width / (float)imgtexture.height;
+        ocrImageAspectRatioFitter.aspectRatio = aspectRatio;
+        SaveTexture(imgtexture, filename);
     }
     private void SaveAllImages()
     {
@@ -77,13 +98,9 @@ public class OCRManager : MonoBehaviour
             SaveTexture(ImageUtility.GetTexture(ocrImages[i]), ocrImagesFileNames[i]);
     }
 
-    IEnumerator OnUpdate()
+    private void Update()
     {
-        while(true)
-        {
-            yield return new WaitForSeconds(updateInterval);
-            CheckState();
-        }
+        CheckState();
     }
 
     private void CheckState()
@@ -93,31 +110,42 @@ public class OCRManager : MonoBehaviour
         if (currentState == previousCheckState)
             return;  //no update is required
 
-        switch(currentState)
+        switch (currentState)
         {
             case ProcessingStage.NONE:
+                statusBar.text = "";
+                ocrImageContainer.texture = imageToOCR;
+                break;
             case ProcessingStage.BINARIZE:
-                imageToSet.texture = imageToOCR;
+                statusBar.text = "Binarization ->";
+                ocrImageContainer.texture = imageToOCR;
                 break;
             case ProcessingStage.NOISE: //binarization has finished
+                statusBar.text = "Noise reductuction ->";
                 ShowProcessedImage(ocrImages[1]);
                 break;
             case ProcessingStage.SEGMENT: //noise reduction just finished
+                statusBar.text = "Segmentation ->";
                 ShowProcessedImage(ocrImages[2]);
                 break;
             case ProcessingStage.POSTNOISE: //segmentation just finished
+                statusBar.text = "Post-noise reduction ->";
                 ShowProcessedImage(ocrImages[3]);
                 break;
             case ProcessingStage.OCR:
+                statusBar.text = "OCR ->";
                 ShowProcessedImage(ocrImages[4]);
                 break;
             case ProcessingStage.COMPLETE:
                 Debug.Log("OCR complete");
-                SaveAllImages();
-                imageToSet.texture = imageToOCR;
-                currentState = ProcessingStage.NONE;
-                oneStepAvailable = true;
                 isProcessing = false;
+                ResetState();
+                statusBar.text = "OCR Completed";
+                if(saveOCRImages)
+                    SaveAllImages();
+                ShowOCRText();
+                if(OnOCRComplete != null)
+                    OnOCRComplete();
                 break;
         }
         previousCheckState = currentState;
@@ -178,13 +206,15 @@ public class OCRManager : MonoBehaviour
     private void ProcessImage_ocr() 
     {
         currentState = ProcessingStage.OCR;
+        Debug.Log("performing ocr");
+        ocrText = "Hello world";
         System.Threading.Thread.Sleep(1000);
     }
 
 
     public void OneStep()
     {//performs one stage of processs per call
-        if (!oneStepAvailable)
+        if (!oneStepAvailable || imageToOCR == null)
             return;
 
         oneStepAvailable = false;
@@ -222,15 +252,43 @@ public class OCRManager : MonoBehaviour
             ProcessImage_ocr();
             currentState = ProcessingStage.COMPLETE;
         }
-        oneStepAvailable = true;
-        isProcessing = false;
+
+        if (currentState == ProcessingStage.COMPLETE)
+        {//completion state is handled by CheckState so mark as still processing
+            oneStepAvailable = false;
+            isProcessing = true;
+        }
+        else
+        {
+            oneStepAvailable = true;
+            isProcessing = false;
+        }
     }
     public void ResetState()
     {
         if (isProcessing) //if some processing is going on 
+        {
+            Debug.Log("Processing in progress");
             return;
+        }
+        ocrImageContainer.texture = imageToOCR;
+        float aspectRatio = (float)imageToOCR.width / (float)imageToOCR.height;
+        ocrImageAspectRatioFitter.aspectRatio = aspectRatio;
+
+        ocrTextViewer.SetActive(false);
+        statusBar.text = "";
+
         currentState = ProcessingStage.NONE;
+        oneStepAvailable = true;
     }
+
+    private void ShowOCRText()
+    {
+        ocrTextMesh.text = ocrText;
+        ocrTextViewer.SetActive(true);
+    }
+
+    public ProcessingStage GetState() { return currentState; }
 
     private void SaveTexture(Texture2D texture, string filename)
     {

@@ -12,6 +12,8 @@ public class GameManager : MonoBehaviour
     public OCRManager ocrManager;
     public RawImage cameraFeed;
 
+    public Button[] ocrButtons;  //ocr related buttons, used for hiding or showing them
+
     private bool screenImageCaptured;
     private bool capturingImage;
 
@@ -20,7 +22,8 @@ public class GameManager : MonoBehaviour
     {
         screenImageCaptured = false;
         capturingImage = false; 
-        ocrManager.imageToSet = ocrImageFeed;
+        ocrManager.ocrImageContainer = ocrImageFeed;
+        ocrManager.OnOCRComplete = OnOCRFinish;
 
         ToggleCameraFeed(true);  //initailly show camera feed and hide ocr image
     }
@@ -58,11 +61,14 @@ public class GameManager : MonoBehaviour
 
     public void OnOneStepOCRButtonPress()
     {
-        if (ocrManager.IsProcessing() && !capturingImage)
+        if (ocrManager.IsProcessing() || capturingImage)
             return;
         screenImageCaptured = false;
         capturingImage = true;  //image capturing takes few frames
-        StartCoroutine(CaptureScreenImage());
+        if (ocrManager.GetState() == OCRManager.ProcessingStage.NONE) //if image has not been captured take it now
+            StartCoroutine(CaptureScreenImage());
+        else
+            screenImageCaptured = true;
         StartCoroutine(PerformOneStepOCR());
     }
     private IEnumerator PerformOneStepOCR()
@@ -79,6 +85,18 @@ public class GameManager : MonoBehaviour
     public void OnReturnButtonPressed()
     {
         ToggleCameraFeed(true);
+        ocrManager.ResetState();
+        ShowOCRButtons(true);
+    }
+    private void ShowOCRButtons(bool value)
+    {
+        foreach(Button button in ocrButtons)
+            button.gameObject.SetActive(value);
+    }
+
+    public void OnOCRFinish()
+    {
+        ShowOCRButtons(false);
     }
 
     private void ToggleCameraFeed(bool toggleTo)
