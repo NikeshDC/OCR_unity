@@ -36,10 +36,18 @@ public class OCRManager : MonoBehaviour
 
     public TextMeshProUGUI statusBar;
     public GameObject statusBarObject;
-    
+
+    private TesseractHelper tesseractHelper;
+
+    private bool performOCRNext = false; //as a hack to integrate with tesseractWrapper/tessearactDriver -- will be changed later
+                                         //tesseractWrapper/tessearactDriver use unity API calls which isn't support in seperate thread
+
 
     private void Start()
     {
+        if(tesseractHelper == null)
+            tesseractHelper = new TesseractHelper();
+
         //add aspect ratio fitter to imagecontainer
         if (ocrImageContainer.GetComponent<AspectRatioFitter>() == null)
             ocrImageContainer.gameObject.AddComponent<AspectRatioFitter>();
@@ -55,6 +63,11 @@ public class OCRManager : MonoBehaviour
         statusBarObject.SetActive(false);
 
         ocrTextViewer.SetActive(false);
+    }
+
+    public bool IsTesseractEngineReady()
+    {
+        return tesseractHelper.IsTesseractEngineReady();
     }
 
     public void SetImageToOCR(Texture2D texture)
@@ -160,11 +173,22 @@ public class OCRManager : MonoBehaviour
         if (currentState != ProcessingStage.NONE)
             return; //if process is already ongoing then dont call a new thread to do the job
         Task.Run(() => { ProcessImageAtOnce(); });//perform whole ocr process
+        StartCoroutine(PerformTesseractOCRWhenReady());
     }
 
     public bool IsProcessing()
     {
         return isProcessing;
+    }
+
+    IEnumerator PerformTesseractOCRWhenReady()
+    {
+        while(!performOCRNext)
+        {
+            yield return null;
+        }
+        ProcessImage_ocr();
+        currentState = ProcessingStage.COMPLETE;
     }
 
     private void ProcessImageAtOnce()
@@ -177,8 +201,6 @@ public class OCRManager : MonoBehaviour
         ProcessImage_noisereduce();
         ProcessImage_segment();
         ProcessImage_postnoisereduce();
-        ProcessImage_ocr();
-        currentState = ProcessingStage.COMPLETE;
     }
 
     private void ProcessImage_binarize()
@@ -205,14 +227,15 @@ public class OCRManager : MonoBehaviour
         currentState = ProcessingStage.POSTNOISE;
         PostNoiseReducerHelper postNoiseReducer = new PostNoiseReducerHelper();
         //segmented image has box drawn in image surrounding segments so use image before segmentation
-        ocrImages[4] = postNoiseReducer.GetDeNoisedImage(ocrImages[2], segments); 
+        ocrImages[4] = postNoiseReducer.GetDeNoisedImage(ocrImages[2], segments);
+        performOCRNext = true; //let the main thread for FullOCR know that image data is available for ocr
     }
     private void ProcessImage_ocr() 
     {
         currentState = ProcessingStage.OCR;
-        Debug.Log("performing ocr");
-        ocrText = "Hello world";
-        System.Threading.Thread.Sleep(1000);
+        Debug.Log("Performing ocr");
+        ocrText = tesseractHelper.GetText(ImageUtility.GetTexture(ocrImages[4]));
+        performOCRNext = false;
     }
 
 
@@ -225,6 +248,11 @@ public class OCRManager : MonoBehaviour
         isProcessing = true;
         if(currentState == ProcessingStage.NONE)
             currentState = ProcessingStage.BINARIZE;//currentState is used as if to mean which stage to perform this call
+        if (currentState == ProcessingStage.OCR)
+        {
+            ProcessImage_ocr();
+            currentState = ProcessingStage.COMPLETE;
+        }
         Task.Run(() => { ProcessImageOneStep(); });
     }
     private void ProcessImageOneStep()

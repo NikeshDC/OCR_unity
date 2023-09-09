@@ -557,7 +557,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ocrImageContainer: {fileID: 0}
-  saveOCRImages: 0
+  saveOCRImages: 1
   ocrTextMesh: {fileID: 1735205593}
   ocrTextViewer: {fileID: 1525173875}
   statusBar: {fileID: 2099989380}
@@ -1516,7 +1516,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1975568866
 RectTransform:
   m_ObjectHideFlags: 0

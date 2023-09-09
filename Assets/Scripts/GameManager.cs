@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
     IEnumerator CaptureScreenImage()
     {
         UIcanvas.gameObject.SetActive(false);
-        //yield return null; //wait so as to let the ui elements have enough time to be hidden
+        yield return null; //wait so as to let the ui elements have enough time to be hidden
         yield return new WaitForEndOfFrame();  
         cameraCapture = ScreenCapture.CaptureScreenshotAsTexture();
         ocrManager.SetImageToOCR(cameraCapture);
