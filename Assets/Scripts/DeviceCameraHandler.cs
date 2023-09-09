@@ -45,13 +45,17 @@ public class DeviceCameraHandler : MonoBehaviour
             cameraDisplay.texture = defaultTexture; 
     }
 
-    /*private void Update()
+    private void Update()
     {
         if (!cameraAvaialable)
             return;
 
-        //handle camera rotation and so on
+        //handle camera sacle and rotation
+        float scaleY = cameraOutput.videoVerticallyMirrored ? -1.0f : 1f;
+        cameraDisplay.rectTransform.localScale = new Vector3 (1f, scaleY, 1f);
+        int orient = cameraOutput.videoRotationAngle;
+        cameraDisplay.rectTransform.localEulerAngles = new Vector3(0f, 0f, orient);
        
-    }*/
+    }
 
 }
