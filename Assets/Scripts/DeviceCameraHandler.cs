@@ -37,9 +37,6 @@ public class DeviceCameraHandler : MonoBehaviour
                 cameraDisplay.AddComponent<AspectRatioFitter>();
             aspectRatioFitter = cameraDisplay.GetComponent<AspectRatioFitter>();
             aspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
-
-            float aspectRatio = (float)cameraOutput.width / (float)cameraOutput.height;
-            aspectRatioFitter.aspectRatio = aspectRatio;
         }
         else
             cameraDisplay.texture = defaultTexture; 
@@ -50,10 +47,24 @@ public class DeviceCameraHandler : MonoBehaviour
         if (!cameraAvaialable)
             return;
 
+        if (cameraOutput.width < 100)
+        {
+            Debug.Log("Still waiting another frame for correct info...");
+            return;
+        }
+
+        cameraDisplay.material.SetTextureScale("_Texture", new Vector2(1f, 1f));
+
         //handle camera sacle and rotation
-        float scaleY = cameraOutput.videoVerticallyMirrored ? -1.0f : 1f;
-        cameraDisplay.rectTransform.localScale = new Vector3 (1f, scaleY, 1f);
-        int orient = cameraOutput.videoRotationAngle;
+        float aspectRatio = (float)cameraOutput.width / (float)cameraOutput.height;
+        aspectRatioFitter.aspectRatio = aspectRatio;
+
+        if(cameraOutput.videoVerticallyMirrored)
+            cameraDisplay.uvRect = new Rect(1, 0, -1, 1);
+        else
+            cameraDisplay.uvRect = new Rect(0, 0, 1, 1);
+
+        int orient = -cameraOutput.videoRotationAngle;
         cameraDisplay.rectTransform.localEulerAngles = new Vector3(0f, 0f, orient);
        
     }
