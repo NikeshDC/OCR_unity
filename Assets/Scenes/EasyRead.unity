@@ -542,7 +542,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraDisplay: {fileID: 709110969}
-  defaultTexture: {fileID: 2800000, guid: 18b608c1044b39a4cbe2cc7be120b922, type: 3}
+  defaultTexture: {fileID: 2800000, guid: 7d8738ac65bfc5d4aa9ef04845370941, type: 3}
   frontCamera: 1
 --- !u!114 &1078310742
 MonoBehaviour:
