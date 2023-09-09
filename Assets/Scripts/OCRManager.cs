@@ -50,7 +50,7 @@ public class OCRManager : MonoBehaviour
         currentState = ProcessingStage.NONE;
         previousCheckState = ProcessingStage.NONE;
         oneStepAvailable = true;
-        imageSaveDirectory = Application.dataPath + Path.DirectorySeparatorChar;
+        imageSaveDirectory = Application.persistentDataPath + Path.DirectorySeparatorChar;
 
         ocrTextViewer.SetActive(false);
     }
