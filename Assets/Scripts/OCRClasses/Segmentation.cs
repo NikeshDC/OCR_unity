@@ -37,7 +37,7 @@ public class Segmentation
         IMG_X = binImage.GetWidth();
         IMG_Y = binImage.GetHeight();
 
-        MAX_COMP = IMG_X * IMG_Y / 2;
+        MAX_COMP = IMG_X * IMG_Y / 2 + 3;
         listedComp = new Component[MAX_COMP];
         componentSequence = new int[MAX_COMP];
         componentRoot = new int[MAX_COMP];
