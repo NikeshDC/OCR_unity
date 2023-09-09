@@ -23,7 +23,7 @@ public class DeviceCameraHandler : MonoBehaviour
         {
             if (deviceCam.kind == WebCamKind.WideAngle && !(deviceCam.isFrontFacing ^ frontCamera)) //choose default(i.e. wideangle) camera either front or back based on frontcamera bool
             {
-                cameraOutput = new WebCamTexture(deviceCam.name, Screen.width, Screen.height);
+                cameraOutput = new WebCamTexture(deviceCam.name, Screen.height, Screen.width);
                 cameraAvaialable = true;
             }
         }

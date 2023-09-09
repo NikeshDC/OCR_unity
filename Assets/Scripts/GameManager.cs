@@ -17,6 +17,8 @@ public class GameManager : MonoBehaviour
     private bool screenImageCaptured;
     private bool capturingImage;
 
+    public GameObject InProgressIcon;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -24,6 +26,7 @@ public class GameManager : MonoBehaviour
         capturingImage = false; 
         ocrManager.ocrImageContainer = ocrImageFeed;
         ocrManager.OnOCRComplete = OnOCRFinish;
+        InProgressIcon.SetActive(false);
 
         ToggleCameraFeed(true);  //initailly show camera feed and hide ocr image
     }
@@ -103,6 +106,15 @@ public class GameManager : MonoBehaviour
     {//when one is shown other should be hidden
         cameraFeed.gameObject.SetActive(toggleTo);
         ocrImageFeed.gameObject.SetActive(!toggleTo);
+    }
+
+    private void Update()
+    {
+        if (ocrManager.IsProcessing())
+            InProgressIcon.SetActive(true);
+        else
+            InProgressIcon.SetActive(false);
+
     }
 
 }
